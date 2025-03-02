@@ -24,7 +24,7 @@ Or check out the package here:
 ➡ **[GitHub Container Registry](https://github.com/Arinji2/umami/pkgs/container/umami)**  
 
 ### **Branch Info**  
-- **`detailed-edits`** → Contains all the modifications.  
+- **`detailed-events`** → Contains all the modifications.  
 - **`main`** → Kept empty to act as a gateway for easy updates from the original repo.  
 
 
