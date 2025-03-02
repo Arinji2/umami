@@ -1,6 +1,6 @@
-import prisma from '@/lib/prisma';
 import clickhouse from '@/lib/clickhouse';
 import { CLICKHOUSE, PRISMA, runQuery } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { QueryFilters, WebsiteEventData } from '@/lib/types';
 
 export async function getEventDataEvents(
@@ -14,37 +14,42 @@ export async function getEventDataEvents(
 
 async function relationalQuery(websiteId: string, filters: QueryFilters) {
   const { rawQuery, parseFilters } = prisma;
-  const { event } = filters;
+  const { event, eventId } = filters;
   const { params } = await parseFilters(websiteId, filters);
-
-  if (event) {
+  if (eventId) {
     return rawQuery(
       `
-      select
-        website_event.event_name as "eventName",
-        event_data.data_key as "propertyName",
-        event_data.data_type as "dataType",
-        event_data.string_value as "propertyValue",
-        count(*) as "total"
-      from event_data
-      inner join website_event
-        on website_event.event_id = event_data.website_event_id
-      where event_data.website_id = {{websiteId::uuid}}
-        and event_data.created_at between {{startDate}} and {{endDate}}
-        and website_event.event_name = {{event}}
-      group by website_event.event_name, event_data.data_key, event_data.data_type, event_data.string_value
-      order by 1 asc, 2 asc, 3 asc, 5 desc
-      `,
-      params,
-    );
-  }
-
-  return rawQuery(
-    `
     select
       website_event.event_name as "eventName",
       event_data.data_key as "propertyName",
       event_data.data_type as "dataType",
+      event_data.string_value as "propertyValue",
+      event_data.website_event_id as "eventId",
+      count(*) as "total"
+    from event_data
+    inner join website_event
+      on website_event.event_id = event_data.website_event_id
+    where event_data.website_id = {{websiteId::uuid}}
+      and event_data.website_event_id = {{eventId::uuid}} -- <- Filter by eventId
+    group by 
+      website_event.event_name, 
+      event_data.data_key, 
+      event_data.data_type, 
+      event_data.string_value, 
+      event_data.website_event_id
+    order by 1 asc, 2 asc, 3 asc, 5 desc
+    `,
+      params,
+    );
+  }
+  if (event) {
+    return rawQuery(
+      `
+    select
+      website_event.event_name as "eventName",
+      event_data.data_key as "propertyName",
+      event_data.data_type as "dataType",
+      event_data.website_event_id as "eventId",
       count(*) as "total"
     from event_data
     inner join website_event
@@ -55,8 +60,9 @@ async function relationalQuery(websiteId: string, filters: QueryFilters) {
     order by 1 asc, 2 asc
     limit 500
     `,
-    params,
-  );
+      params,
+    );
+  }
 }
 
 async function clickhouseQuery(
@@ -64,10 +70,10 @@ async function clickhouseQuery(
   filters: QueryFilters,
 ): Promise<{ eventName: string; propertyName: string; dataType: number; total: number }[]> {
   const { rawQuery, parseFilters } = clickhouse;
-  const { event } = filters;
+  const { event, eventId } = filters; // <- Include eventId
   const { params } = await parseFilters(websiteId, filters);
 
-  if (event) {
+  if (eventId) {
     return rawQuery(
       `
       select
@@ -79,7 +85,7 @@ async function clickhouseQuery(
       from event_data
       where website_id = {websiteId:UUID}
         and created_at between {startDate:DateTime64} and {endDate:DateTime64}
-        and event_name = {event:String}
+        and website_event_id = {eventId:UUID} -- <- Filter by eventId
       group by data_key, data_type, string_value, event_name
       order by 1 asc, 2 asc, 3 asc, 5 desc
       limit 500
@@ -87,9 +93,9 @@ async function clickhouseQuery(
       params,
     );
   }
-
-  return rawQuery(
-    `
+  if (event) {
+    return rawQuery(
+      `
     select
       event_name as eventName,
       data_key as propertyName,
@@ -102,6 +108,7 @@ async function clickhouseQuery(
     order by 1 asc, 2 asc
     limit 500
     `,
-    params,
-  );
+      params,
+    );
+  }
 }
