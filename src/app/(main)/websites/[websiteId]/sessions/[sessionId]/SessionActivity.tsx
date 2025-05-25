@@ -37,7 +37,7 @@ export function SessionActivity({
             <div key={id} className={styles.row}>
               <div className={styles.time}>
                 <StatusLight color={`#${visitId?.substring(0, 6)}`}>
-                  {formatTimezoneDate(createdAt, 'h:mm:ss aaa')}
+                  {formatTimezoneDate(createdAt, 'pp')}
                 </StatusLight>
               </div>
 
