@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from 'react';
 import {
   COLLECTION_TYPE,
   DATA_TYPE,
@@ -8,7 +9,6 @@ import {
   ROLES,
 } from './constants';
 import { TIME_UNIT } from './date';
-import { Dispatch, SetStateAction } from 'react';
 
 type ObjectValues<T> = T[keyof T];
 
@@ -106,6 +106,7 @@ export interface WebsiteEventData {
   propertyName: string;
   dataType: number;
   propertyValue?: string;
+  eventId?: string;
   total: number;
 }
 
@@ -138,6 +139,7 @@ export interface DateRange {
 }
 
 export interface QueryFilters {
+  eventId?: string;
   startDate?: Date;
   endDate?: Date;
   timezone?: string;

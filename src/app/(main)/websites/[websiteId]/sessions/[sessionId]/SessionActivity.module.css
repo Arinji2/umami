@@ -7,8 +7,13 @@
 .row {
   display: grid;
   grid-template-columns: max-content max-content 1fr;
-  align-items: center;
+  align-items: start;
   gap: 20px;
+}
+.rowContent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .time {

@@ -1,0 +1,23 @@
+.rowContent {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+}
+
+.eventContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 20px;
+  padding-top: 10px;
+}
+
+.propertyName {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.propertyValue {
+  color: var(--font-color200);
+  font-size: 12px;
+}
